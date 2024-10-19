@@ -113,7 +113,6 @@ function startCalibration() {
     .then((response) => response.json())
     .then((data) => {
       const rawThrust = data.thrust;
-      console.log(rawThrust);
       calibrationFactor = knownWeight / rawThrust;
       document.getElementById("calibrationFactor").innerText = calibrationFactor.toFixed(4);
 
@@ -152,7 +151,8 @@ function updateData() {
   fetch("/getData")
     .then((response) => response.json())
     .then((data) => {
-      document.getElementById("thrust").innerText = data.thrust;
+      const calibratedThrust = (calibrationFactor * data.thrust).toFixed(2);
+      document.getElementById("thrust").innerText = calibratedThrust;
       document.getElementById("voltage").innerText = data.voltage;
       document.getElementById("current").innerText = data.current;
 
@@ -166,8 +166,6 @@ function updateData() {
           ? ((data.thrust / (data.voltage * data.current)) * 100).toFixed(2)
           : 0;
       document.getElementById("efficiency").innerText = efficiency;
-
-      const calibratedThrust = data.thrust * calibrationFactor;
 
       const timestamp = Date.now() / 1000;
       chart.data.labels.push(timestamp);

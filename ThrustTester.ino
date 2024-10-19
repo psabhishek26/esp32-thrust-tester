@@ -162,6 +162,16 @@ void setup() {
     server.send(200, "text/plain", "Sampling stopped");
   });
 
+  server.on("/getRawThrust", HTTP_GET, []() {
+    StaticJsonDocument<100> doc;
+    float rawThrust = loadCell.read();
+    doc["thrust"] = rawThrust;
+
+    String jsonData;
+    serializeJson(doc, jsonData);
+    server.send(200, "application/json", jsonData);
+  });
+
   server.on("/getData", HTTP_GET, []() {
     StaticJsonDocument<200> doc;
     doc["thrust"] = loadCell.read();
