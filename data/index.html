@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Thrust Tester</title>
+    <link rel="stylesheet" href="/style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  </head>
+  <body>
+    <div class="container">
+      <div class="controls">
+        <h1>Thrust Tester</h1>
+        <label for="throttle">Throttle:</label>
+        <input
+          type="range"
+          id="throttle"
+          min="1000"
+          max="2000"
+          value="1000"
+          class="slider"
+          oninput="updateThrottle(this.value)"
+        />
+        <p>Throttle value: <span id="throttleValue">1000</span> us</p>
+
+        <button id="startBtn" onclick="startSampling()">Start Sampling</button>
+        <button id="stopBtn" onclick="stopSampling()" disabled>
+          Stop Sampling
+        </button>
+        <button id="printBtn" onclick="printData()" style="display: none">
+          Print Data
+        </button>
+
+        <div id="data">
+          <h3>Sensor Data</h3>
+          <p>Thrust: <span id="thrust">0</span> g</p>
+          <p>Voltage: <span id="voltage">0</span> V</p>
+          <p>Current: <span id="current">0</span> A</p>
+          <p>Power: <span id="power">0</span> W</p>
+          <p>Efficiency: <span id="efficiency">0</span> g/W</p>
+          <p>RPM: <span id="rpm">0</span></p>
+        </div>
+
+        <div id="calibrationSection">
+          <h3>Calibration</h3>
+          <p>
+            Place a known weight on the load cell and click "Calibrate" to set the calibration factor.
+          </p>
+          <input
+            type="number"
+            id="knownWeight"
+            placeholder="Enter known weight in grams"
+          />
+          <button onclick="startCalibration()">Calibrate</button>
+          <p>Calibration Factor: <span id="calibrationFactor">0</span></p>
+        </div>        
+
+        <div id="recordedDataTable" style="display: none">
+          <h3>Recorded Data</h3>
+          <table id="dataTable" border="1" cellspacing="0" cellpadding="5">
+            <thead>
+              <tr>
+                <th>Time (s)</th>
+                <th>Thrust (g)</th>
+                <th>Voltage (V)</th>
+                <th>Current (A)</th>
+                <th>Power (W)</th>
+                <th>RPM</th>
+                <th>Efficiency (g/W)</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="graph">
+        <canvas id="dataGraph"></canvas>
+      </div>
+    </div>
+
+    <script src="/script.js"></script>
+  </body>
+</html>
