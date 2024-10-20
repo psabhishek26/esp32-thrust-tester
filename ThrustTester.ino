@@ -104,7 +104,7 @@ void setup() {
   servo.writeMicroseconds(1000); 
   
   loadCell.begin(LOADCELL_DOUT_PIN, LOADCELL_PIN);
-  loadCell.set_scale();
+  loadCell.set_scale(668.75);
   loadCell.tare();
 
   pinMode(RPM_SENSOR_PIN, INPUT);
