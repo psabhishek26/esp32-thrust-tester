@@ -8,7 +8,9 @@ const efficiencyData = [];
 
 let throttle = 1000;
 let sampling = false;
-let calibrationFactor = 1;
+let loadCellCalibrationFactor = 1;
+let voltageCalibrationFactor = 1;
+let currentCalibrationFactor = 1;
 let recordedData = [];
 
 const ctx = document.getElementById("dataGraph").getContext("2d");
@@ -101,23 +103,65 @@ const chart = new Chart(ctx, {
   },
 });
 
-function startCalibration() {
-  const knownWeight = parseFloat(document.getElementById("knownWeight").value);
+function openCalibrationModal() {
+  document.getElementById("calibrationModal").style.display = "block";
+}
 
+function closeCalibrationModal() {
+  document.getElementById("calibrationModal").style.display = "none";
+}
+
+function resetData() {
+  labels = [];
+  thrustData = [];
+  voltageData = [];
+  currentData = [];
+  powerData = [];
+  rpmData = [];
+  efficiencyData = [];
+  recordedData = [];
+}
+
+function calibrateAll() {
+  const knownWeight = parseFloat(document.getElementById("knownWeight").value);
   if (isNaN(knownWeight) || knownWeight <= 0) {
     alert("Please enter a valid known weight.");
     return;
   }
 
-  fetch("/getRawThrust")
+  const knownVoltage = parseFloat(
+    document.getElementById("knownVoltage").value
+  );
+  if (isNaN(knownVoltage) || knownVoltage <= 0) {
+    alert("Please enter a valid voltage.");
+    return;
+  }
+
+  const knownCurrent = parseFloat(
+    document.getElementById("knownCurrent").value
+  );
+  if (isNaN(knownCurrent) || knownCurrent <= 0) {
+    alert("Please enter a valid current.");
+    return;
+  }
+
+  fetch("/getRawData")
     .then((response) => response.json())
     .then((data) => {
-      const rawThrust = data.thrust;
-      calibrationFactor = knownWeight / rawThrust;
-      document.getElementById("calibrationFactor").innerText = calibrationFactor.toFixed(4);
-
-      recordedData = [];
+      loadCellCalibrationFactor = data.thrust / knownWeight;
+      voltageCalibrationFactor = knownVoltage / data.voltage;
+      currentCalibrationFactor = knownCurrent / data.current;
+      fetch(`/setLoadCellCalibrationFactor?value=${loadCellCalibrationFactor}`);
+      document.getElementById("loadCellCalibrationFactor").innerText =
+        loadCellCalibrationFactor.toFixed(4);
+      document.getElementById("voltageCalibrationFactor").innerText =
+        voltageCalibrationFactor.toFixed(4);
+      document.getElementById("currentCalibrationFactor").innerText =
+        currentCalibrationFactor.toFixed(4);
     });
+
+  resetData();
+  closeCalibrationModal();
 }
 
 function updateThrottle(value) {
@@ -151,27 +195,36 @@ function updateData() {
   fetch("/getData")
     .then((response) => response.json())
     .then((data) => {
-      const calibratedThrust = (calibrationFactor * data.thrust).toFixed(2);
+      const calibratedThrust = data.thrust;
+      const calibratedVoltage = (
+        data.voltage * voltageCalibrationFactor
+      ).toFixed(3);
+      const calibratedCurrent = (
+        data.current * currentCalibrationFactor
+      ).toFixed(3);
       document.getElementById("thrust").innerText = calibratedThrust;
-      document.getElementById("voltage").innerText = data.voltage;
-      document.getElementById("current").innerText = data.current;
+      document.getElementById("voltage").innerText = calibratedVoltage;
+      document.getElementById("current").innerText = calibratedCurrent;
 
-      const powerUsage = (data.voltage * data.current).toFixed(2);
+      const powerUsage = (calibratedVoltage * calibratedCurrent).toFixed(2);
       document.getElementById("power").innerText = powerUsage;
 
       document.getElementById("rpm").innerText = data.rpm;
 
       const efficiency =
-        data.current !== 0 && data.voltage !== 0
-          ? ((data.thrust / (data.voltage * data.current)) * 100).toFixed(2)
+        calibratedVoltage !== 0 && calibratedCurrent !== 0
+          ? (
+              (data.thrust / (calibratedVoltage * calibratedCurrent)) *
+              100
+            ).toFixed(2)
           : 0;
       document.getElementById("efficiency").innerText = efficiency;
 
       const timestamp = Date.now() / 1000;
       chart.data.labels.push(timestamp);
       thrustData.push(calibratedThrust);
-      voltageData.push(data.voltage);
-      currentData.push(data.current);
+      voltageData.push(calibratedVoltage);
+      currentData.push(calibratedCurrent);
       rpmData.push(data.rpm);
       efficiencyData.push(efficiency);
       powerData.push(powerUsage);
@@ -179,8 +232,8 @@ function updateData() {
       recordedData.push({
         throttle: throttle,
         thrust: calibratedThrust,
-        voltage: data.voltage,
-        current: data.current,
+        voltage: calibratedVoltage,
+        current: calibratedCurrent,
         power: powerUsage,
         rpm: data.rpm,
         efficiency: efficiency,

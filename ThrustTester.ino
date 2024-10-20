@@ -152,6 +152,17 @@ void setup() {
     }
   });
 
+  server.on("/setLoadCellCalibrationFactor", HTTP_GET, []() {
+    if (server.hasArg("value")) {
+      float loadCellCalibrationFactor = server.arg("value").toFloat();
+      loadCell.set_scale(loadCellCalibrationFactor);
+      loadCell.tare();
+      server.send(200, "text/plain", " Load cell calibration set");
+    } else {
+      server.send(400, "text/plain", "Missing calibration value");
+    }
+  });
+
   server.on("/startSampling", HTTP_GET, []() {
     sampling = true;
     server.send(200, "text/plain", "Sampling started");
@@ -162,10 +173,12 @@ void setup() {
     server.send(200, "text/plain", "Sampling stopped");
   });
 
-  server.on("/getRawThrust", HTTP_GET, []() {
+  server.on("/getRawData", HTTP_GET, []() {
     StaticJsonDocument<100> doc;
-    float rawThrust = loadCell.read();
+    long rawThrust = loadCell.get_units(10);
     doc["thrust"] = rawThrust;
+    doc["voltage"] = readVoltage();
+    doc["current"] = readCurrent();
 
     String jsonData;
     serializeJson(doc, jsonData);
@@ -174,7 +187,7 @@ void setup() {
 
   server.on("/getData", HTTP_GET, []() {
     StaticJsonDocument<200> doc;
-    doc["thrust"] = loadCell.read();
+    doc["thrust"] = loadCell.get_units(10);
     doc["voltage"] = readVoltage();
     doc["current"] = readCurrent();
     doc["rpm"] = calculateRPM();

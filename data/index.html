@@ -38,20 +38,15 @@
           <p>Efficiency: <span id="efficiency">0</span> g/W</p>
           <p>RPM: <span id="rpm">0</span></p>
         </div>
-
+        
         <div id="calibrationSection">
           <h3>Calibration</h3>
-          <p>
-            Place a known weight on the load cell and click "Calibrate" to set the calibration factor.
-          </p>
-          <input
-            type="number"
-            id="knownWeight"
-            placeholder="Enter known weight in grams"
-          />
-          <button onclick="startCalibration()">Calibrate</button>
-          <p>Calibration Factor: <span id="calibrationFactor">0</span></p>
-        </div>        
+          <p>Click "Calibrate" to open the calibration window and enter known values for weight, voltage, and current.</p>
+          <button onclick="openCalibrationModal()">Calibrate</button>
+          <p>Load Cell Calibration Factor: <span id="loadCellCalibrationFactor">0</span></p>
+          <p>Voltage Calibration Factor: <span id="voltageCalibrationFactor">0</span></p>
+          <p>Current Calibration Factor: <span id="currentCalibrationFactor">0</span></p>
+        </div>
 
         <div id="recordedDataTable" style="display: none">
           <h3>Recorded Data</h3>
@@ -76,6 +71,28 @@
         <canvas id="dataGraph"></canvas>
       </div>
     </div>
+
+    <div id="calibrationModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeCalibrationModal()">&times;</span>
+        <h2>Calibration</h2>
+    
+        <h3>Calibrate Weight</h3>
+        <p>Place a known weight on the sensor and enter the value:</p>
+        <input type="number" id="knownWeight" placeholder="Known weight (grams)" />
+    
+        <h3>Calibrate Voltage</h3>
+        <p>Enter the known voltage value:</p>
+        <input type="number" id="knownVoltage" placeholder="Known voltage (volts)" />
+    
+        <h3>Calibrate Current</h3>
+        <p>Enter the known current value:</p>
+        <input type="number" id="knownCurrent" placeholder="Known current (amps)" />
+    
+        <button onclick="calibrateAll()">Calibrate All</button>
+      </div>
+    </div>
+    
 
     <script src="/script.js"></script>
   </body>
